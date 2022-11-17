@@ -1,0 +1,24 @@
+.NoteBody{
+    box-shadow: 8px 8px 10px black;
+    border: solid 3px black;
+    margin-right: 5px;
+    display: block;
+}
+.NoteTitle{
+    font-weight: bold;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-height: 30px;
+}
+.NoteText{
+    font-weight: normal;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-height: 20px;
+}
+.webix_menu-x .webix_scroll_cont{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}

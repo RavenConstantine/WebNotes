@@ -42,4 +42,6 @@ Route::prefix('note')->controller(NotesController::class)->group(function () {
 
 Route::prefix('settings')->controller(SettingsController::class)->group(function () {
     Route::get('/newloglenght/{value}','NewLogLenght');
+    Route::get('/newautosave/{value}','NewAutoSave');
+    Route::get('/test/{key}/{value}','SetEnvValue');
 });

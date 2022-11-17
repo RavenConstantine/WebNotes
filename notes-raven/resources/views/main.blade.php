@@ -13,6 +13,7 @@
             //Переменные
             var selectedId;
             var displayMode = "note";
+            var autoSave = "{{ env('AUTO_SAVE') }}";
 
             //Функции
             function LoadListNotes(){
@@ -86,7 +87,15 @@
 
             function ChangeLogLenght(){
                 webix.prompt("Введите новое значение",  "prompt-warning", function(result) {
-                    webix.ajax().get('api/settings/newloglenght/' + result);
+                    if(result!==false){webix.ajax().get('api/settings/newloglenght/' + result);}
+                });
+            }
+            function ChangeAutoSave(){
+                webix.confirm("Включить автоматическое сохранение?",  "confirm-warning", function(result) {
+                    if(result){result=1}
+                    else{result=0}
+                    autoSave = result;
+                    webix.ajax().get('api/settings/newautosave/' + result);
                 });
             }
             //UI
@@ -122,6 +131,10 @@
                                             value:"Изменить размер лог файла"
                                         },
                                         {
+                                            id:"change_auto_save",
+                                            value:"Автосохранение"
+                                        },
+                                        {
                                             id:"show_story",
                                             value:"Показать историю",
                                             badge: 0, 
@@ -147,6 +160,9 @@
                                     }
                                     else if(id==="change_log_lenght"){
                                         ChangeLogLenght();
+                                    }
+                                    else if(id==="change_auto_save"){
+                                        ChangeAutoSave();
                                     }
                                     else if(id==="show_story"){
                                         displayMode="story";
@@ -201,10 +217,11 @@
                     }
                 });
                 $$('NoteTitleEditor').attachEvent("onTimedKeyPress", function(){
-                    SaveNote(selectedId, $$("NoteTitleEditor").getValue(), $$("NoteTextEditor").getValue());
+                    if(autoSave == "1"){SaveNote(selectedId, $$("NoteTitleEditor").getValue(), $$("NoteTextEditor").getValue())}
+                        
                 });
                 $$('NoteTextEditor').attachEvent("onTimedKeyPress", function(){
-                    SaveNote(selectedId, $$("NoteTitleEditor").getValue(), $$("NoteTextEditor").getValue());
+                    if(autoSave =="1"){SaveNote(selectedId, $$("NoteTitleEditor").getValue(), $$("NoteTextEditor").getValue())}
                 });
             });
         </script>

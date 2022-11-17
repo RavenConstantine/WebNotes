@@ -34,11 +34,17 @@ class SettingsController extends Controller
 
         Storage::put('public/main_notes.log', $nowMainLogText);
     }
+    
+    function NewAutoSave($newValue){
+        $ip = (new NotesController)->GetUserIp();
+        Storage::append('public/main_notes.log', 'Update Auto Save='.$newValue.' '.date('d.m.Y H:i:s').' '.$ip);
+        SettingsController::SetEnvValue('AUTO_SAVE', $newValue);
+    }
 
     function SetEnvValue($key, $value){
         $path = app()->environmentFilePath();
-
         $escaped = preg_quote('='.env($key), '/');
+        echo(env($key));
 
         file_put_contents($path, preg_replace(
             "/^{$key}{$escaped}/m",

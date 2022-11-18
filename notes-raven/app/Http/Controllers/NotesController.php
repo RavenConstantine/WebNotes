@@ -32,6 +32,7 @@ class NotesController extends Controller
         Storage::makeDirectory('public/notes/'.$newID);
         Storage::put('public/notes/'.$newID.'/text.txt','Новая заметка');
         Storage::put('public/notes/'.$newID.'/title.txt','Новая заметка');
+        Storage::put('public/notes/'.$newID.'/'.date('d.m.Y H:i:s').'.story','Новая заметка'.PHP_EOL.'Новая заметка');
         Storage::put('public/notes/'.$newID.'/log.log','');
         NotesController::AddLog($newID, 'Create');
     }
@@ -53,10 +54,10 @@ class NotesController extends Controller
         if(Storage::exists('public/notes/'.$id)){
             $title = base64_decode($title);
             $text = base64_decode($text);
-            Storage::copy('public/notes/'.$id.'/text.txt', 'public/notes/'.$id.'/'.date('d.m.Y H:i:s').'.story');
-            Storage::prepend('public/notes/'.$id.'/'.date('d.m.Y H:i:s').'.story', $title);
             Storage::put('public/notes/'.$id.'/title.txt', $title);
             Storage::put('public/notes/'.$id.'/text.txt', $text);
+            Storage::copy('public/notes/'.$id.'/text.txt', 'public/notes/'.$id.'/'.date('d.m.Y H:i:s').'.story');
+            Storage::prepend('public/notes/'.$id.'/'.date('d.m.Y H:i:s').'.story', $title);
             NotesController::AddLog($id, 'Save');
         }
     }

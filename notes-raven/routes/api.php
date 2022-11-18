@@ -21,10 +21,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/test',function(){
-    $i = substr_count(Storage::get('public/main_notes.log'),PHP_EOL)+1;
-    return $i;
-});
 //Заметки
 Route::prefix('note')->controller(NotesController::class)->group(function () {
     Route::get('/load','Load');
@@ -43,5 +39,4 @@ Route::prefix('note')->controller(NotesController::class)->group(function () {
 Route::prefix('settings')->controller(SettingsController::class)->group(function () {
     Route::get('/loglenght/{value}','LogLenght');
     Route::get('/autosave/{value}','AutoSave');
-    Route::get('/test/{key}/{value}','SetEnvValue');
 });

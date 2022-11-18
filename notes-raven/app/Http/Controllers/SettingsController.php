@@ -8,34 +8,34 @@ use App\Http\Controllers\NotesController;
 
 class SettingsController extends Controller
 {
-    function NewLogLenght($newValue){
+    function LogLenght($newValue){
         $ip = (new NotesController)->GetUserIp();
         Storage::append('public/main_notes.log', 'Update Log Lenght='.$newValue.' '.date('d.m.Y H:i:s').' '.$ip);
         SettingsController::SetEnvValue('LOG_LENGHT', $newValue);
 
         $pathsInFolder = Storage::directories('public/notes');
         foreach($pathsInFolder as $value){
-            $nowLogText = Storage::get($value.'/log.log');
-            $nowLogLenght = substr_count($nowLogText,PHP_EOL)+1;
-            while($nowLogLenght > $newValue){
-                $nowLogLenght = substr_count($nowLogText,PHP_EOL)+1;
-                $nowLogText = substr($nowLogText, strpos($nowLogText,PHP_EOL) + 1);
+            $LogText = Storage::get($value.'/log.log');
+            $LogLenght = substr_count($LogText,PHP_EOL)+1;
+            while($LogLenght > $newValue){
+                $LogLenght = substr_count($LogText,PHP_EOL)+1;
+                $LogText = substr($LogText, strpos($LogText,PHP_EOL) + 1);
             }
-            Storage::put($value.'/log.log', $nowLogText);
+            Storage::put($value.'/log.log', $LogText);
         }
 
-        $nowMainLogText = Storage::get('public/main_notes.log');
-        $nowMainLogLenght = substr_count($nowMainLogText,PHP_EOL)+1;
+        $LogText = Storage::get('public/main_notes.log');
+        $LogLenght = substr_count($LogText,PHP_EOL)+1;
 
-        while($nowMainLogLenght > $newValue){
-            $nowMainLogText = substr($nowMainLogText, strpos($nowMainLogText,PHP_EOL) + 1);
-            $nowMainLogLenght = substr_count($nowMainLogText,PHP_EOL)+1;
+        while($LogLenght > $newValue){
+            $LogText = substr($LogText, strpos($LogText,PHP_EOL) + 1);
+            $LogLenght = substr_count($LogText,PHP_EOL)+1;
         }
 
-        Storage::put('public/main_notes.log', $nowMainLogText);
+        Storage::put('public/main_notes.log', $LogText);
     }
     
-    function NewAutoSave($newValue){
+    function AutoSave($newValue){
         $ip = (new NotesController)->GetUserIp();
         Storage::append('public/main_notes.log', 'Update Auto Save='.$newValue.' '.date('d.m.Y H:i:s').' '.$ip);
         SettingsController::SetEnvValue('AUTO_SAVE', $newValue);

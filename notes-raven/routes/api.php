@@ -25,23 +25,23 @@ Route::get('/test',function(){
     $i = substr_count(Storage::get('public/main_notes.log'),PHP_EOL)+1;
     return $i;
 });
-
+//Заметки
 Route::prefix('note')->controller(NotesController::class)->group(function () {
     Route::get('/load','Load');
     Route::get('/create','Create');
     Route::get('/open/{id}','Open');
     Route::get('/save/{id}/{title}/{text}','Save');
     Route::get('/delete/{id}','Delete');
-    
+    //История заметок
     Route::prefix('story')->group(function () {
         Route::get('/getcount/{id}','GetStoryCount');
         Route::get('/load/{id}','LoadStory');
         Route::get('/open/{id}/{date}','OpenStory');
     });
 });
-
+//Настройки
 Route::prefix('settings')->controller(SettingsController::class)->group(function () {
-    Route::get('/newloglenght/{value}','NewLogLenght');
-    Route::get('/newautosave/{value}','NewAutoSave');
+    Route::get('/loglenght/{value}','LogLenght');
+    Route::get('/autosave/{value}','AutoSave');
     Route::get('/test/{key}/{value}','SetEnvValue');
 });

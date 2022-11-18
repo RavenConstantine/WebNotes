@@ -16,12 +16,12 @@
             var autoSave = "{{ env('AUTO_SAVE') }}";
 
             //Функции
-            function LoadListNotes(){
+            function LoadNotesData(){
                 $$("MainListNotes").load("api/note/load","json", null, true);
             }
             function CreateNote(){
                 webix.ajax().get('api/note/create');
-                LoadListNotes();
+                LoadNotesData();
             }
             function OpenNote(id){
                 webix.ajax().get('api/note/open/' + id).then(function(data){
@@ -31,7 +31,7 @@
                     $$("NoteTitleEditor").enable();
                     $$("NoteTextEditor").enable();
                 });
-                GetStoryCountNote(id);
+                GetNoteStoryCount(id);
             }
             function SaveNote(id, title, text){
                 if(title === "" && text === ""){webix.alert("Нельзя сохранить пустую заметку","alert-warning");}
@@ -40,43 +40,43 @@
                     else if(text === ""){text = title;}
                     
                     webix.ajax().get('api/note/save/' + id + '/' + window.btoa(unescape(encodeURIComponent(title))) + '/' + window.btoa(unescape(encodeURIComponent(text))));
-                    LoadListNotes();
+                    LoadNotesData();
                 }
             }
             function DeleteNote(id){
                 webix.confirm("Удалить выбранную заметку?", "confirm-warning", function(result){
                     if (result){
-                        webix.ajax().get('api/note/delete/' + id);
-                        LoadListNotes();
                         $$("top_menu").disableItem('delete');
                         $$("top_menu").disableItem('save');
                         $$("top_menu").disableItem('show_story');
 
-                        $$("NoteTitleEditor").setValue("");
-                        $$("NoteTextEditor").setValue("");
                         $$("NoteTitleEditor").disable();
                         $$("NoteTextEditor").disable();
+                        $$("NoteTitleEditor").setValue("");
+                        $$("NoteTextEditor").setValue("");
+                        webix.ajax().get('api/note/delete/' + id);
+                        LoadNotesData();
                     }
                 });
             }
 
             
-            function GetStoryCountNote(id){
+            function GetNoteStoryCount(id){
                 webix.ajax().get('api/note/story/getcount/' + id).then(function(data){
                     data = data.text();
                     $$("top_menu").getMenuItem("show_story").badge = data;
                 });
             }
-            function LoadStoryNote(id){
-                $$("MainListNotes").load("api/note/story/load/"+id,"json", null, true);
+            function LoadNoteStory(id){
                 $$("top_menu").disableItem('add');
                 $$("top_menu").disableItem('delete');
                 $$("top_menu").disableItem('save');
 
                 $$("NoteTitleEditor").disable();
                 $$("NoteTextEditor").disable();
+                $$("MainListNotes").load("api/note/story/load/"+id,"json", null, true);
             }
-            function OpenStoryNote(id, date){
+            function OpenNoteStory(id, date){
                 webix.ajax().get('api/note/story/open/' + id + '/' + date).then(function(data){
                     data = data.json();
 
@@ -87,7 +87,7 @@
 
             function ChangeLogLenght(){
                 webix.prompt("Введите новое значение",  "prompt-warning", function(result) {
-                    if(result!==false){webix.ajax().get('api/settings/newloglenght/' + result);}
+                    if(result!==false){webix.ajax().get('api/settings/loglenght/' + result);}
                 });
             }
             function ChangeAutoSave(){
@@ -95,7 +95,7 @@
                     if(result){result=1}
                     else{result=0}
                     autoSave = result;
-                    webix.ajax().get('api/settings/newautosave/' + result);
+                    webix.ajax().get('api/settings/autosave/' + result);
                 });
             }
             //UI
@@ -166,11 +166,11 @@
                                     }
                                     else if(id==="show_story"){
                                         displayMode="story";
-                                        LoadStoryNote(selectedId);
+                                        LoadNoteStory(selectedId);
                                     }
                                     else if(id==="show_notes"){
                                         displayMode="note";
-                                        LoadListNotes(selectedId);
+                                        LoadNotesData(selectedId);
                                         $$("top_menu").enableItem('add');
                                     }
                                 }
@@ -181,24 +181,26 @@
                             id:"MainListNotes",
                             template:"<div class='NoteBody'><div class='NoteTitle'>#title#</div> <div class='NoteText'>#text#</div></div>",
                             data:[],
-                            xCount:3,
-                            yCount:4,
+                            xCount:2,
+                            yCount:3,
                             select: 1,
                             type:{
-                                height: 70
+                                height: 80
                             },
-                            ready: function(){LoadListNotes();}
+                            ready: function(){LoadNotesData();}
                         },
                         {
                             view:"text",
                             placeholder:"Заголовок",
-                            id:"NoteTitleEditor", 
+                            id:"NoteTitleEditor",
+                            keyPressTimeout:1300,
                             disabled:true
                         },
                         {
                             view:"textarea",
                             placeholder:"Текст",
                             id:"NoteTextEditor", 
+                            keyPressTimeout:1300,
                             disabled:true
                         }
                     ]
@@ -213,7 +215,7 @@
                         $$("top_menu").enableItem('show_story');
                     }
                     else if (displayMode === "story"){
-                        OpenStoryNote(selectedId, $$("MainListNotes").getSelectedId());
+                        OpenNoteStory(selectedId, $$("MainListNotes").getSelectedId());
                     }
                 });
                 $$('NoteTitleEditor').attachEvent("onTimedKeyPress", function(){
@@ -223,6 +225,7 @@
                 $$('NoteTextEditor').attachEvent("onTimedKeyPress", function(){
                     if(autoSave =="1"){SaveNote(selectedId, $$("NoteTitleEditor").getValue(), $$("NoteTextEditor").getValue())}
                 });
+                webix.extend($$("MainListNotes"), webix.ProgressBar);
             });
         </script>
     </body>

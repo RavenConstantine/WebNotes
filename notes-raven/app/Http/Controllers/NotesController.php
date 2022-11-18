@@ -9,19 +9,19 @@ class NotesController extends Controller
 {
     function Load() {
         $pathsInFolder = Storage::directories('public/notes');
-        $NotesList = array();
+        $AllNotes = array();
         foreach($pathsInFolder as $value){
             $path = pathinfo($value);
             $title = Storage::get($value.'/title.txt');
             $text = Storage::get($value.'/text.txt');
             NotesController::AddLog($path['filename'], 'Load');
-            $NotesList[] = array(
+            $AllNotes[] = array(
                 'id' => $path['filename'],
                 'title' => $title,
                 'text' => $text
             );
         }
-        return $NotesList;
+        return $AllNotes;
     }
 
     function Create() {
@@ -37,39 +37,46 @@ class NotesController extends Controller
     }
     
     function Open($id) {
-        $title = Storage::get('public/notes/'.$id.'/title.txt');
-        $text = Storage::get('public/notes/'.$id.'/text.txt');
-        NotesController::AddLog($id, 'Open');
-        $Note = array(
-            'title' => $title,
-            'text' => $text
-        );
-        return $Note;
+        if(Storage::exists('public/notes/'.$id)){
+            $title = Storage::get('public/notes/'.$id.'/title.txt');
+            $text = Storage::get('public/notes/'.$id.'/text.txt');
+            NotesController::AddLog($id, 'Open');
+            $Note = array(
+                'title' => $title,
+                'text' => $text
+            );
+            return $Note;
+        }
     }
 
     function Save($id, $title, $text) {
-        $title = base64_decode($title);
-        $text = base64_decode($text);
-        Storage::copy('public/notes/'.$id.'/text.txt', 'public/notes/'.$id.'/'.date('d.m.Y H:i:s').'.story');
-        Storage::put('public/notes/'.$id.'/title.txt', $title);
-        Storage::put('public/notes/'.$id.'/text.txt', $text);
-        NotesController::AddLog($id, 'Save');
+        if(Storage::exists('public/notes/'.$id)){
+            $title = base64_decode($title);
+            $text = base64_decode($text);
+            Storage::copy('public/notes/'.$id.'/text.txt', 'public/notes/'.$id.'/'.date('d.m.Y H:i:s').'.story');
+            Storage::prepend('public/notes/'.$id.'/'.date('d.m.Y H:i:s').'.story', $title);
+            Storage::put('public/notes/'.$id.'/title.txt', $title);
+            Storage::put('public/notes/'.$id.'/text.txt', $text);
+            NotesController::AddLog($id, 'Save');
+        }
     }
 
     function Delete($id) {
-        do{
-            $newID = NotesController::GenerateRandomString();
-        } while (Storage::exists('public/deletedNotes/'.$newID));
+        if(Storage::exists('public/notes/'.$id)){
+            do{
+                $newID = NotesController::GenerateRandomString();
+            } while (Storage::exists('public/deletedNotes/'.$newID));
 
-        NotesController::AddLog($id, 'Delete; NewID='.$newID);
-        Storage::makeDirectory('public/deletedNotes/'.$newID);
-        $filesInFolder = Storage::files('public/notes/'.$id);
-        foreach($filesInFolder as $value){
-            $file = pathinfo($value);
-            echo($value);
-            Storage::copy($value, 'public/deletedNotes/'.$newID.'/'.$file['basename']);
+            NotesController::AddLog($id, 'Delete; NewID='.$newID);
+            Storage::makeDirectory('public/deletedNotes/'.$newID);
+            $filesInFolder = Storage::files('public/notes/'.$id);
+            foreach($filesInFolder as $value){
+                $file = pathinfo($value);
+                echo($value);
+                Storage::copy($value, 'public/deletedNotes/'.$newID.'/'.$file['basename']);
+            }
+            Storage::deleteDirectory('public/notes/'.$id);
         }
-        Storage::deleteDirectory('public/notes/'.$id);
     }
 
     function GenerateRandomString() {
@@ -85,7 +92,16 @@ class NotesController extends Controller
     }
 
     function GetUserIp(){
-        foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key){
+        $keys = array(
+            'HTTP_CLIENT_IP', 
+            'HTTP_X_FORWARDED_FOR', 
+            'HTTP_X_FORWARDED', 
+            'HTTP_X_CLUSTER_CLIENT_IP', 
+            'HTTP_FORWARDED_FOR', 
+            'HTTP_FORWARDED', 
+            'REMOTE_ADDR'
+        );
+        foreach ($keys as $key){
             if (array_key_exists($key, $_SERVER) === true){
                 foreach (explode(',', $_SERVER[$key]) as $ip){
                     $ip = trim($ip);
@@ -119,43 +135,49 @@ class NotesController extends Controller
     }
 
     function GetStoryCount($id){
-        NotesController::AddLog($id, 'Get Story');
-        $pathsInFolder = Storage::files('public/notes/'.$id);
-        $storyCount = 0;
-        foreach($pathsInFolder as $value){
-            $path = pathinfo($value);
-            if($path['extension'] == "story"){
-                $storyCount = $storyCount + 1;
+        if(Storage::exists('public/notes/'.$id)){
+            NotesController::AddLog($id, 'Get Story');
+            $pathsInFolder = Storage::files('public/notes/'.$id);
+            $Count = 0;
+            foreach($pathsInFolder as $value){
+                $path = pathinfo($value);
+                if($path['extension'] == "story"){
+                    $Count = $Count + 1;
+                }
             }
+            return $Count;
         }
-        return $storyCount;
     }
 
     function LoadStory($id){
-        NotesController::AddLog($id, 'Load Story');
-        $pathsInFolder = Storage::files('public/notes/'.$id);
-        $StoryList = array();
-        foreach($pathsInFolder as $value){
-            $path = pathinfo($value);
-            if($path['extension'] == "story"){
-                $text = Storage::get($value);
-                $StoryList[] = array(
-                    'id' => $path['filename'],
-                    'title' => $path['filename'],
-                    'text' => $text
-                );
+        if(Storage::exists('public/notes/'.$id)){
+            NotesController::AddLog($id, 'Load Story');
+            $filesInFolder = Storage::files('public/notes/'.$id);
+            $AllStory = array();
+            foreach($filesInFolder as $value){
+                $path = pathinfo($value);
+                if($path['extension'] == "story"){
+                    $text = Storage::get($value);
+                    $AllStory[] = array(
+                        'id' => $path['filename'],
+                        'title' => $path['filename'],
+                        'text' => $text
+                    );
+                }
             }
+            return $AllStory;
         }
-        return $StoryList;
     }
 
     function OpenStory($id, $date){
-        $text = Storage::get('public/notes/'.$id.'/'.$date.'.story');
-        NotesController::AddLog($id, 'Open story '.$date);
-        $Story = array(
-            'title' => $date,
-            'text' => $text
-        );
-        return $Story;
+        if(Storage::exists('public/notes/'.$id)){
+            $text = Storage::get('public/notes/'.$id.'/'.$date.'.story');
+            NotesController::AddLog($id, 'Open story '.$date);
+            $Story = array(
+                'title' => $date,
+                'text' => $text
+            );
+            return $Story;
+        }
     }
 }

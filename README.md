@@ -5,3 +5,5 @@
 ![screenshot4](img/4.jpg) 
 ![screenshot5](img/5.jpg) 
 ![screenshot6](img/6.jpg) 
+
+Установка
